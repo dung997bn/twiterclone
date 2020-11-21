@@ -12,7 +12,6 @@ app.set("view engine", "pug")
 app.set("views", "views")
 
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
-
     let payload ={
         pageTitle:' Home'
     }
