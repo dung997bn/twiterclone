@@ -32,14 +32,20 @@ app.use(session({
 //Routes
 const loginRoute = require('./routes/loginRoute')
 const registerRoute = require('./routes/registerRoute')
+const logoutRoute = require('./routes/logout');
 
 app.use("/login", loginRoute)
 app.use("/register", registerRoute)
+app.use("/logout", logoutRoute)
 
 app.use(requireLogin)
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user)
+        res.redirect('/login')
     let payload = {
-        pageTitle: ' Home'
+        pageTitle: ' Home',
+        userLoggedIn: user
     }
     res.status(200).render("home", payload)
 })

@@ -1,4 +1,5 @@
 extends layout/main-layout.pug
 
 block content
-    h1 this is awesome
+    +createPostForm(userLoggedIn)
+    p #{userLoggedIn.email}

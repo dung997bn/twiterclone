@@ -40,12 +40,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
             data.password = await bcrypt.hash(password, 10);
 
             User.create(data)
-                .then((userData) => {
+                .then((userData :any) => {
                     let payloadSignedIn = {
-                        email: userData.schema.obj.email,
-                        firstName: userData.schema.obj.firstName,
-                        lastName: userData.schema.obj.lastName,
-                        username: userData.schema.obj.username,
+                        email: userData.email,
+                        firstName: userData.firstName,
+                        lastName: userData.lastName,
+                        username: userData.username,
                         _id: userData.id
                     }
 

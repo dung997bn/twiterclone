@@ -9,6 +9,7 @@ export function requireLogin(req: Request, res: Response, next: NextFunction) {
     if (token) {
         jsonwebtoken.verify(token, config.getSecret(), (err: any, decoded: any) => {
             if (decoded.email && decoded._id) {
+                req.app.set('user', decoded)
                 return next()
             }
             return res.redirect("/login")
