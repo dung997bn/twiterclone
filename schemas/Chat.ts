@@ -7,4 +7,4 @@ const chatSchema = new Schema({
     latestMessage: { type: Schema.Types.ObjectId, ref: 'Message' }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Chat', chatSchema);
+export default mongoose.model('Chat', chatSchema);

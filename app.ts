@@ -33,10 +33,12 @@ app.use(session({
 const loginRoute = require('./routes/loginRoute')
 const registerRoute = require('./routes/registerRoute')
 const logoutRoute = require('./routes/logout');
+const postsApiRoute = require('./routes/api/posts');
 
 app.use("/login", loginRoute)
 app.use("/register", registerRoute)
 app.use("/logout", logoutRoute)
+app.use("/api/posts", postsApiRoute)
 
 app.use(requireLogin)
 app.get("/", (req: Request, res: Response, next: NextFunction) => {

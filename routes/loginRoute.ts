@@ -38,6 +38,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                     firstName: user.firstName,
                     lastName: user.lastName,
                     username: user.username,
+                    profilePic: user.profilePic,
                     _id: user.id
                 }
 

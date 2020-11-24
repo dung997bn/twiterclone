@@ -23,4 +23,4 @@ NotificationSchema.statics.insertNotification = async (userTo: mongoose.Types.Ob
 
 
 var Notification = mongoose.model('Notification', NotificationSchema);
-module.exports = Notification;
+export default Notification;
