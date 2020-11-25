@@ -5,9 +5,12 @@ import Post from '../../schemas/Post'
 const router = express.Router()
 
 router.get("/", (req: Request, res: Response, next: NextFunction) => {
-    if (req.app.get('token'))
-        req.app.set('token', '')
-    res.redirect("/login");
+    Post.find().then((results: any) => {
+        res.status(200).send(results)
+    }).catch((error) => {
+        console.log(error);
+        return res.status(400).send({ error })
+    })
 })
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
