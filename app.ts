@@ -47,7 +47,8 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
         res.redirect('/login')
     let payload = {
         pageTitle: ' Home',
-        userLoggedIn: user
+        userLoggedIn: user,
+        userLoggedInClient: JSON.stringify(user)
     }
     res.status(200).render("home", payload)
 })
