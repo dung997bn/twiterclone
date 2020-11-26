@@ -5,14 +5,39 @@ $(document).ready(() => {
     $('#postTextarea').keyup(e => {
         let textbox = $(e.target)
         let value = textbox.val().trim()
-
         let submitButton = $('#submitPostButton')
         if (value == '') {
             submitButton.prop('disabled', true)
             return
         }
-
         submitButton.prop('disabled', false)
+    })
+
+    $('#replyTextarea').keyup(e => {
+        let textbox = $(e.target)
+        let value = textbox.val().trim()
+
+        let submitButton = $('#submitReplyButton')
+        if (value == '') {
+            submitButton.prop('disabled', true)
+            return
+        }
+        submitButton.prop('disabled', false)
+    })
+
+    $('#replyModal').on('show.bs.modal', (e) => {
+        let button = $(e.relatedTarget)
+        let postId = getPostIdFromElement(button)
+
+        $.get("/api/posts/" + postId, results => {
+            outputPosts(results, $('#originalPostContainer'))
+            $('#submitReplyButton').attr('data-id', postId)
+        })
+    })
+
+    $('#replyModal').on('hide.bs.modal', () => {
+        $('#originalPostContainer').html('')
+        $('#submitReplyButton').attr('data-id', '')
     })
 
     $('#submitPostButton').click((e) => {
@@ -29,6 +54,24 @@ $(document).ready(() => {
             $('#submitPostButton').prop('disabled', true)
         })
     })
+
+
+    $('#submitReplyButton').click((e) => {
+        e.preventDefault()
+        let value = $('#replyTextarea').val()
+        let postId = $('#submitReplyButton').data('id')
+        let data = {
+            content: value,
+        }
+        $.post("/api/posts/comment/" + postId, data, (postData, status, xhr) => {
+            if (postData.post.replyTo) {
+                location.reload()
+            } else {
+                console.log(postData.post);
+            }
+        })
+    })
+
 
     $(document).on('click', '.likeButton', ((e) => {
         e.preventDefault()
@@ -53,7 +96,6 @@ $(document).ready(() => {
             })
         }
     }))
-
 
     $(document).on('click', '.retweetButton', ((e) => {
         e.preventDefault()
@@ -93,6 +135,31 @@ function getPostIdFromElement(element) {
 }
 
 function creatPostHtml(postData) {
+
+    //check if post is retweet?
+    let isRetweet = postData.retweetData != undefined
+    let retweetBy = isRetweet ? postData.postedBy.username : null
+
+    postData = isRetweet ? postData.retweetData : postData
+
+    let retweeText = ''
+    if (isRetweet) {
+        retweeText = `<span>
+                    <i class="fas fa-retweet"></i>
+                    Retweeted by  <a href="/profile/${retweetBy}"></a> ${retweetBy}
+                    </span>`
+    }
+
+    let replyFlag = ""
+    if (postData.replyTo) {
+        let replyToUserName = postData.replyTo.postedBy.username
+        replyFlag = `
+            <div class="replyFlag">
+                Replied to <a href="/profile/${replyToUserName}">@${replyToUserName}</a>
+            </div>      
+        `
+    }
+    //Render data
     let postedBy = postData.postedBy
     let displayName = postedBy.firstName + " " + postedBy.lastName
     let timestamp = timeDifference(new Date(), new Date(postData.createdAt))
@@ -102,37 +169,41 @@ function creatPostHtml(postData) {
 
     return `
     <div class="post" data-id="${postData._id}">
-    <div class="mainContentContainer">
-        <div class="userImageContainer">
-            <img src="${postedBy.profilePic}" />
+        <div class="postActionContainer">
+            ${retweeText}
         </div>
+        <div class="mainContentContainer">
+            <div class="userImageContainer">
+                <img src="${postedBy.profilePic}" />
+            </div>
         <div class="postContentContainer">
             <div class="header">
                 <a href="/profile/${postedBy.username}" class='displayName'>${displayName}</a>
                 <span class="username">${postedBy.username}</span>
                 <span class="date">${timestamp}</span>
             </div>
+            ${replyFlag}
             <div class="postBody">
                 <span>${postData.content}</span>
             </div>
             <div class="postFooter">
-            <div class="postButtonContainer">
-            <button>
-                <i class="fas fa-comment"></i>
-            </button>
-        </div>
-        <div class="postButtonContainer green">
-            <button class="retweetButton ${retweetButtonActiveClass}">
-                <i class="fas fa-retweet"></i>
-                <span>${postData.retweetUsers.length || ''}</span>
-            </button>
-        </div>
-        <div class="postButtonContainer red">
-            <button class="likeButton ${likeButtonActiveClass}">
-                <i class="fas fa-heart"></i>
-                <span>${postData.likes.length || ''}</span>
-            </button>
-        </div>
+                <div class="postButtonContainer">
+                     <button data-toggle="modal" data-target="#replyModal">
+                        <i class="fas fa-comment"></i>
+                     </button>
+                </div>
+                <div class="postButtonContainer green">
+                    <button class="retweetButton ${retweetButtonActiveClass}">
+                        <i class="fas fa-retweet"></i>
+                        <span>${postData.retweetUsers.length || ''}</span>
+                    </button>
+                </div>
+                <div class="postButtonContainer red">
+                     <button class="likeButton ${likeButtonActiveClass}">
+                        <i class="fas fa-heart"></i>
+                        <span>${postData.likes.length || ''}</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -177,3 +248,19 @@ function timeDifference(current, previous) {
     }
 }
 
+
+function outputPosts(results, container) {
+    container.html('')
+    if (results.length == 0) {
+        container.append(`<span class="noResults">No post to show.</span>`)
+        return
+    }
+    if (!Array.isArray(results)) {
+        results = [results]
+    }
+
+    results.forEach(result => {
+        var html = creatPostHtml(result)
+        container.append(html)
+    })
+}

@@ -1,3 +1,4 @@
+import { assert } from 'console';
 import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import Post from '../../schemas/Post'
@@ -5,16 +6,15 @@ import User from '../../schemas/User';
 
 const router = express.Router()
 
-router.get("/", (req: Request, res: Response, next: NextFunction) => {
-    Post.find()
-        .populate("postedBy")
-        .sort({ 'createdAt': -1 })
-        .then((results: any) => {
-            res.status(200).send(results)
-        }).catch((error) => {
-            console.log(error);
-            return res.status(400).send({ error })
-        })
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+    let results = await getPosts({})
+    res.status(200).send(results)
+})
+
+router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+    let postId = req.params.id
+    let results = await getPosts({ _id: postId })
+    res.status(200).send(results[0])
 })
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +34,6 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         return res.status(400).send({ error })
     })
 })
-
 
 //like
 router.put("/:id/like", async (req: Request, res: Response, next: NextFunction) => {
@@ -72,7 +71,6 @@ router.put("/:id/like", async (req: Request, res: Response, next: NextFunction) 
 
     return res.status(200).send({ post })
 })
-
 
 //retweet
 router.post("/:id/retweet", async (req: Request, res: Response, next: NextFunction) => {
@@ -123,6 +121,44 @@ router.post("/:id/retweet", async (req: Request, res: Response, next: NextFuncti
     return res.status(200).send({ post })
 })
 
+//Comment
 
+router.post("/comment/:postId", async (req: Request, res: Response, next: NextFunction) => {
+    let postId = req.params.postId
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+    let userId = user._id
+
+    let data = {
+        postedBy: userId,
+        content: req.body.content,
+        pinned: false,
+        replyTo: postId
+    }
+
+    //Insert post comment
+    let post = await Post.create(data)
+        .catch((error) => {
+            return res.status(400).send({ error })
+        })
+
+    return res.status(200).send({ post })
+})
+
+
+async function getPosts(filter: any): Promise<typeof Post[]> {
+    let results: any = await Post.find(filter)
+        .populate("postedBy")
+        .populate('retweetData')
+        .populate('replyTo')
+        .sort({ 'createdAt': -1 })
+        .catch((error) => {
+            console.log(error)
+        })
+    await User.populate(results, { path: 'replyTo.postedBy' })
+    return await User.populate(results, { path: 'retweetData.postedBy' })
+}
 
 module.exports = router;
