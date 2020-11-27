@@ -13,8 +13,19 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
     let postId = req.params.id
-    let results = await getPosts({ _id: postId })
-    res.status(200).send(results[0])
+    let postData: any = await getPosts({ _id: postId })
+
+    let results = {
+        postData: postData[0],
+        replyTo: null,
+        replies: null as any
+    }
+    if (postData[0].replyTo)
+        results.replyTo = postData[0].replyTo
+
+    results.replies = await getPosts({ replyTo: postId })
+
+    res.status(200).send(results)
 })
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {

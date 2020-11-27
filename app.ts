@@ -23,6 +23,8 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.set("view engine", "pug")
 app.set("views", "views")
 
+
+
 app.use(express.static(path.join(__dirname, "public")))
 app.use(session({
     secret: config.getSecret(),
@@ -35,12 +37,23 @@ const registerRoute = require('./routes/registerRoute')
 const logoutRoute = require('./routes/logout');
 const postsApiRoute = require('./routes/api/posts');
 
+
+//Route view
+const postRoute = require('./routes/postRoute')
+const profileRoute = require('./routes/profileRoute')
+
 app.use("/login", loginRoute)
 app.use("/register", registerRoute)
 app.use("/logout", logoutRoute)
 app.use("/api/posts", postsApiRoute)
 
+
 app.use(requireLogin)
+
+//Render view
+
+app.use('/posts', postRoute)
+app.use('/profile', profileRoute)
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
     let user = req.app.get('user')
     if (!user)

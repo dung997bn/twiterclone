@@ -30,7 +30,7 @@ $(document).ready(() => {
         let postId = getPostIdFromElement(button)
 
         $.get("/api/posts/" + postId, results => {
-            outputPosts(results, $('#originalPostContainer'))
+            outputPosts(results.postData, $('#originalPostContainer'))
             $('#submitReplyButton').attr('data-id', postId)
         })
     })
@@ -122,7 +122,13 @@ $(document).ready(() => {
         }
     }))
 
-
+    $(document).on('click', '.post', ((e) => {
+        let element = $(e.target)
+        let postId = getPostIdFromElement(element)
+        if (postId && !element.is("button")) {
+            window.location.href = '/posts/' + postId
+        }
+    }))
 
 })
 
@@ -135,7 +141,7 @@ function getPostIdFromElement(element) {
 }
 
 function creatPostHtml(postData) {
-
+    let root = location.origin
     //check if post is retweet?
     let isRetweet = postData.retweetData != undefined
     let retweetBy = isRetweet ? postData.postedBy.username : null
@@ -151,8 +157,8 @@ function creatPostHtml(postData) {
     }
 
     let replyFlag = ""
-    if (postData.replyTo) {
-        let replyToUserName = postData.replyTo.postedBy.username
+    if (postData.replyTo && postData.replyTo.postedBy) {
+        let replyToUserName = postData.replyTo.postedBy.username ?? ""
         replyFlag = `
             <div class="replyFlag">
                 Replied to <a href="/profile/${replyToUserName}">@${replyToUserName}</a>
@@ -174,7 +180,7 @@ function creatPostHtml(postData) {
         </div>
         <div class="mainContentContainer">
             <div class="userImageContainer">
-                <img src="${postedBy.profilePic}" />
+                <img src="${root}/${postedBy.profilePic}" />
             </div>
         <div class="postContentContainer">
             <div class="header">
@@ -261,6 +267,31 @@ function outputPosts(results, container) {
 
     results.forEach(result => {
         var html = creatPostHtml(result)
+        container.append(html)
+    })
+}
+
+
+function outputPostWithReplies(results, container) {
+    container.html('')
+
+    if (results.replyTo && results.replyTo._id) {
+        var html = creatPostHtml(results.replyTo)
+        container.append(html)
+    }
+
+    var mainPostHtml = creatPostHtml(results.postData)
+    container.append(mainPostHtml)
+    if (results.replies.length == 0) {
+        container.append(`<span class="noResults">No post to show.</span>`)
+        return
+    }
+    if (!Array.isArray(results.replies)) {
+        results = [results.replies]
+    }
+
+    results.replies.forEach(result => {
+        var html = creatPostHtml(result.replies)
         container.append(html)
     })
 }

@@ -10,7 +10,7 @@ html(lang="en")
         link(rel="stylesheet", href="/css/main.css")
     body
         script.
-            var userLoggedInClient=!{userLoggedInClient}
+            var userLoggedInClient = !{userLoggedInClient}
         .wrapper
             .row
                 nav.col-2
@@ -26,7 +26,7 @@ html(lang="en")
                     a(href="/messages")
                         i.fas.fa-envelope
                         span#messagesBadge
-                    a(href="/profile")
+                    a(href=`/profile`)
                         i.fas.fa-user
                     a(href="/logout")
                         i.fas.fa-sign-out-alt

@@ -1,0 +1,28 @@
+extends layout/main-layout.pug
+
+block content
+    if !profileUser
+        span.errorMessage User not found
+    else
+        .profileHeaderContainer
+            .coverPhotoSection
+                .coverPhotoContainer
+                    if profileUser.coverPhoto
+                        img(src=root+profileUser.coverPhoto, alt="User's cover photo")
+
+                    if profileUser._id == userLoggedInClient._id
+                        button.coverPhotoButton(data-toggle="modal", data-target="#coverPhotoUploadModal")
+                            i.fas.fa-camera
+
+                .userImageContainer
+                    img(src=root+profileUser.profilePic, alt="User profile image")
+
+                    if profileUser._id == userLoggedInClient._id
+                        button.profilePictureButton(data-toggle="modal", data-target="#imageUploadModal")
+                            i.fas.fa-camera
+        .postsContainer
+
+
+block scripts
+    
+    script(src="/js/profile.js")
