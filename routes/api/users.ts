@@ -1,10 +1,14 @@
 import express from 'express';
 import { NextFunction, Request, Response } from 'express';
-import Post from '../../schemas/Post'
 import User from '../../schemas/User';
-
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 const router = express.Router()
 
+let upload = multer({
+    dest: "uploads/"
+})
 
 router.get("/:userId/following", async (req: Request, res: Response, next: NextFunction) => {
     let results: any = await User.findById(req.params.userId)
@@ -24,6 +28,27 @@ router.get("/:userId/followers", async (req: Request, res: Response, next: NextF
             res.sendStatus(400);
         })
     return res.status(200).send(results);
+});
+
+router.post("/profilePicture", upload.single("croppedImage"), async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.file) {
+        console.log('No file here');
+        return res.status(400)
+    }
+    let filePath = `/uploads/images/${req.file.filename}.png`
+    let tempPath = req.file.path
+    let targetPath = path.join(__dirname, `../../${filePath}`)
+    fs.rename(tempPath, targetPath, async (error) => {
+        if (error) {
+            console.log(error);
+            return res.status(400)
+        }
+        //Update to database
+        let user = req.app.get('user')
+        let userUpdated = await User.findByIdAndUpdate(user._id, { profilePic: filePath }, { new: true })
+        req.app.set('user', userUpdated)
+    })
+    return res.status(200)
 });
 
 

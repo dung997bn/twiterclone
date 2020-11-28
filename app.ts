@@ -38,7 +38,8 @@ const logoutRoute = require('./routes/logout');
 const postsApiRoute = require('./routes/api/posts');
 const userApiRoute = require('./routes/api/users');
 
-
+//Access root
+const uploadsRoute = require('./routes/uploadsRoute')
 //Route view
 const postRoute = require('./routes/postRoute')
 const profileRoute = require('./routes/profileRoute')
@@ -49,6 +50,8 @@ app.use("/logout", logoutRoute)
 app.use("/api/posts", postsApiRoute)
 app.use("/api/users", userApiRoute)
 
+//allow client access root of server
+app.use("/uploads", uploadsRoute)
 
 app.use(requireLogin)
 

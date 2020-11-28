@@ -42,6 +42,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                     likes: user.likes,
                     retweets: user.retweets,
                     following: user.following,
+                    followers: user.followers,
                     _id: user.id
                 }
 

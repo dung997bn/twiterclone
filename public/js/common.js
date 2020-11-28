@@ -2,6 +2,9 @@ $(document).ready(() => {
     // refreshMessagesBadge();
     // refreshNotificationsBadge();
 
+    //Global 
+    let cropper
+
     $('#postTextarea').keyup(e => {
         let textbox = $(e.target)
         let value = textbox.val().trim()
@@ -71,6 +74,61 @@ $(document).ready(() => {
             }
         })
     })
+
+    $(document).on('change', '#filePhoto', (function () {
+        var fileUpload = $(this).get(0);
+        var files = fileUpload.files;
+        var fileReader = new FileReader()
+        // 
+        fileReader.addEventListener("load", function (e) {
+            // convert image file to base64 string
+            let image = document.getElementById('imagePreview')
+            image.src = e.target.result
+
+            if (cropper) {
+                cropper.destroy()
+            }
+            cropper = new Cropper(image, {
+                aspectRatio: 1 / 1,
+                background: false
+            })
+        }, false);
+        fileReader.readAsDataURL(files[0])
+    }))
+
+    $(document).on('click', '#imageUploadButton', ((e) => {
+        if (!cropper) {
+            alert('Cannot update image! Please choose a image file')
+        }
+        let canvas = cropper.getCroppedCanvas()
+
+        if (canvas == null) {
+            alert('Cannot update image! Please choose a image file')
+        }
+
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            // Pass the image file name as the third parameter if necessary.
+            formData.append('croppedImage', blob);
+            await $.ajax({
+                url: "/api/users/profilePicture",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: (data) => {
+                    location.reload()
+                },
+                error: (err) => {
+                    console.log(err);
+                },
+                complete: () => {
+                    location.reload()
+                    // location.href = "/profile"
+                }
+            })
+        })
+    }))
 
 
     $(document).on('click', '.likeButton', ((e) => {
@@ -224,7 +282,7 @@ function creatPostHtml(postData) {
         </div>
         <div class="mainContentContainer">
             <div class="userImageContainer">
-                <img src="${root}/${postedBy.profilePic}" />
+                <img src="${root}${postedBy.profilePic}" />
             </div>
         <div class="postContentContainer">
             <div class="header">
@@ -371,7 +429,7 @@ function createUserHtml(userData, showFollowButton) {
 
     return `<div class='user'>
                 <div class='userImageContainer'>
-                    <img src='${root}/${userData.profilePic}'>
+                    <img src='${root}${userData.profilePic}'>
                 </div>
                 <div class='userDetailsContainer'>
                     <div class='header'>
