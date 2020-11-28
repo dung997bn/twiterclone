@@ -1,9 +1,13 @@
 extends layout/main-layout.pug
 
 block content    
+    script. 
+        var postId = '!{postId}'
     .postsContainer
 
-    //- +createReplyModal(payload)
+    +createReplyModal(userLoggedIn)
+    +createPinnedPostModal()
+    +createUnpinPostModal()
 
 block scripts
     script.

@@ -58,6 +58,50 @@ $(document).ready(() => {
         })
     })
 
+    $("#confirmPinModal").on("show.bs.modal", (event) => {
+        var button = $(event.relatedTarget);
+        var postId = getPostIdFromElement(button);
+        $("#pinPostButton").data("id", postId);
+    })
+    
+    $("#unpinModal").on("show.bs.modal", (event) => {
+        var button = $(event.relatedTarget);
+        var postId = getPostIdFromElement(button);
+        $("#unpinPostButton").data("id", postId);
+    })
+
+    $("#pinPostButton").click((event) => {
+        var postId = $(event.target).data("id");
+    
+        $.ajax({
+            url: `/api/posts/${postId}`,
+            type: "PUT",
+            data: { pinned: true },
+            success: (data, status, xhr) => {
+                if(xhr.status != 204) {
+                    alert("could not delete post");
+                    return;
+                }  
+                location.reload();
+            }
+        })
+    })
+    
+    $("#unpinPostButton").click((event) => {
+        var postId = $(event.target).data("id"); 
+        $.ajax({
+            url: `/api/posts/${postId}`,
+            type: "PUT",
+            data: { pinned: false },
+            success: (data, status, xhr) => {
+                if(xhr.status != 204) {
+                    alert("could not delete post");
+                    return;
+                }    
+                location.reload();
+            }
+        })
+    })
 
     $('#submitReplyButton').click((e) => {
         e.preventDefault()
@@ -130,6 +174,60 @@ $(document).ready(() => {
         })
     }))
 
+    $(document).on('change', '#coverPhoto', (function () {
+        var fileUpload = $(this).get(0);
+        var files = fileUpload.files;
+        var fileReader = new FileReader()
+        // 
+        fileReader.addEventListener("load", function (e) {
+            // convert image file to base64 string
+            let image = document.getElementById('coverPreview')
+            image.src = e.target.result
+
+            if (cropper) {
+                cropper.destroy()
+            }
+            cropper = new Cropper(image, {
+                aspectRatio: 16 / 9,
+                background: false
+            })
+        }, false);
+        fileReader.readAsDataURL(files[0])
+    }))
+
+    $(document).on('click', '#coverPhotoButton', ((e) => {
+        if (!cropper) {
+            alert('Cannot update image! Please choose a image file')
+        }
+        let canvas = cropper.getCroppedCanvas()
+
+        if (canvas == null) {
+            alert('Cannot update image! Please choose a image file')
+        }
+
+        canvas.toBlob(async (blob) => {
+            const formData = new FormData();
+            // Pass the image file name as the third parameter if necessary.
+            formData.append('croppedImage', blob);
+            await $.ajax({
+                url: "/api/users/coverPicture",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: (data) => {
+                    location.reload()
+                },
+                error: (err) => {
+                    console.log(err);
+                },
+                complete: () => {
+                    location.reload()
+                    // location.href = "/profile"
+                }
+            })
+        })
+    }))
 
     $(document).on('click', '.likeButton', ((e) => {
         e.preventDefault()
@@ -212,7 +310,6 @@ $(document).ready(() => {
                     difference = -1
                 }
 
-
                 let followersLabel = $('#followersValue')
                 if (followersLabel.length != 0) {
                     let followersText = followersLabel.text()
@@ -220,11 +317,6 @@ $(document).ready(() => {
                     followersText = parseInt(followersText)
                     followersLabel.text(followersText + difference)
                 }
-                // let followingLabel=$('#followersValue')
-                // if(followingLabel.length != 0){
-                //     let follow
-                // }
-
 
             },
             error: (error) => {
@@ -267,6 +359,7 @@ function creatPostHtml(postData) {
             </div>      
         `
     }
+
     //Render data
     let postedBy = postData.postedBy
     let displayName = postedBy.firstName + " " + postedBy.lastName
@@ -275,6 +368,24 @@ function creatPostHtml(postData) {
     let likeButtonActiveClass = postData.likes.includes(userLoggedInClient._id) ? 'active' : ''
     let retweetButtonActiveClass = postData.retweetUsers.includes(userLoggedInClient._id) ? 'active' : ''
 
+
+    //Pin
+    var buttons = "";
+    var pinnedPostText = "";
+    if (postData.postedBy._id == userLoggedInClient._id) {
+        var pinnedClass = "";
+        var dataTarget = "#confirmPinModal";
+        if (postData.pinned === true) {
+            pinnedClass = "active";
+            dataTarget = "#unpinModal";
+            pinnedPostText = "<i class='fas fa-thumbtack'></i> <span>Pinned post</span>";
+        }
+    }
+
+    buttons = `<button class='pinButton ${pinnedClass}' data-id="${postData._id}"
+                     data-toggle="modal" data-target="${dataTarget}">
+                     <i class='fas fa-thumbtack'></i>
+                     </button>`
     return `
     <div class="post" data-id="${postData._id}">
         <div class="postActionContainer">
@@ -285,10 +396,12 @@ function creatPostHtml(postData) {
                 <img src="${root}${postedBy.profilePic}" />
             </div>
         <div class="postContentContainer">
+            <div class='pinnedPostText'>${pinnedPostText}</div>
             <div class="header">
                 <a href="/profile/${postedBy.username}" class='displayName'>${displayName}</a>
                 <span class="username">${postedBy.username}</span>
                 <span class="date">${timestamp}</span>
+                ${buttons}
             </div>
             ${replyFlag}
             <div class="postBody">

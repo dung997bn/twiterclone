@@ -39,6 +39,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
                     lastName: user.lastName,
                     username: user.username,
                     profilePic: user.profilePic,
+                    coverPhoto: user.coverPhoto,
                     likes: user.likes,
                     retweets: user.retweets,
                     following: user.following,

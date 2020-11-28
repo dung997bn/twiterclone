@@ -51,6 +51,27 @@ router.post("/profilePicture", upload.single("croppedImage"), async (req: Reques
     return res.status(200)
 });
 
+router.post("/coverPicture", upload.single("croppedImage"), async (req: Request, res: Response, next: NextFunction) => {
+    if (!req.file) {
+        console.log('No file here');
+        return res.status(400)
+    }
+    let filePath = `/uploads/cover-images/${req.file.filename}.png`
+    let tempPath = req.file.path
+    let targetPath = path.join(__dirname, `../../${filePath}`)
+    fs.rename(tempPath, targetPath, async (error) => {
+        if (error) {
+            console.log(error);
+            return res.status(400)
+        }
+        //Update to database
+        let user = req.app.get('user')
+        let userUpdated = await User.findByIdAndUpdate(user._id, { coverPhoto: filePath }, { new: true })
+        req.app.set('user', userUpdated)
+    })
+    return res.status(200)
+});
+
 
 router.put("/:userId/follow", async (req: Request, res: Response, next: NextFunction) => {
     let user = req.app.get('user')

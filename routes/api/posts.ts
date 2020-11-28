@@ -185,6 +185,27 @@ router.post("/comment/:postId", async (req: Request, res: Response, next: NextFu
 })
 
 
+//Pin
+router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+    if (req.body.pinned !== undefined) {
+        await Post.updateMany({ postedBy: user._id }, { pinned: false })
+            .catch(error => {
+                console.log(error);
+                res.sendStatus(400);
+            })
+    }
+    Post.findByIdAndUpdate(req.params.id, req.body)
+        .then(() => res.sendStatus(204))
+        .catch(error => {
+            console.log(error);
+            res.sendStatus(400);
+        })
+})
+
 async function getPosts(filter: any): Promise<typeof Post[]> {
     let results: any = await Post.find(filter)
         .populate("postedBy")
