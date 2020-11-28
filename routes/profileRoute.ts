@@ -6,10 +6,11 @@ const router = express.Router()
 
 router.get("/", (req, res, next) => {
     const user = req.app.get('user')
-    const root='http://localhost:3003/'
+    const root = 'http://localhost:3003/'
     var payload = {
         pageTitle: user.username,
         userLoggedInClient: JSON.stringify(user),
+        userLoggedIn: user,
         profileUser: user,
         root
     }
@@ -18,13 +19,20 @@ router.get("/", (req, res, next) => {
 })
 
 
-router.get("/:username",async (req: Request, res: Response, next: NextFunction) => {
-    const root='http://localhost:3003/'
-    const payload =await getPayload(req.params.username, req.app.get('user'),root)
+router.get("/:username", async (req: Request, res: Response, next: NextFunction) => {
+    const root = 'http://localhost:3003/'
+    const payload = await getPayload(req.params.username, req.app.get('user'), root)
     res.status(200).render("profilePage", payload)
 })
 
-async function getPayload(username: string, userLoggedInClient: any,root:string) {
+router.get("/:username/replies", async (req: Request, res: Response, next: NextFunction) => {
+    const root = 'http://localhost:3003/'
+    const payload: any = await getPayload(req.params.username, req.app.get('user'), root)
+    payload.selectedTab = 'replies'
+    res.status(200).render("profilePage", payload)
+})
+
+async function getPayload(username: string, userLoggedInClient: any, root: string) {
     let user: any = await User.findOne({ username: username })
     if (!user) {
         user = await User.findById({ username })
@@ -33,12 +41,14 @@ async function getPayload(username: string, userLoggedInClient: any,root:string)
                 pageTitle: user.username,
                 userLoggedInClient: JSON.stringify(userLoggedInClient),
                 profileUser: user,
+                userLoggedIn: userLoggedInClient,
                 root
             }
         } else {
             return {
                 pageTitle: 'User not found',
                 userLoggedInClient: JSON.stringify(userLoggedInClient),
+                userLoggedIn: userLoggedInClient,
                 profileUser: null,
                 root
             }
@@ -48,6 +58,7 @@ async function getPayload(username: string, userLoggedInClient: any,root:string)
     return {
         pageTitle: user.username,
         userLoggedInClient: JSON.stringify(userLoggedInClient),
+        userLoggedIn: userLoggedInClient,
         profileUser: user,
         root
     }

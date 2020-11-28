@@ -1,4 +1,3 @@
-import { assert } from 'console';
 import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import Post from '../../schemas/Post'
@@ -7,7 +6,13 @@ import User from '../../schemas/User';
 const router = express.Router()
 
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
-    let results = await getPosts({})
+    let searchObj = req.query as any
+    if (searchObj.isReply !== undefined) {
+        var isReply = searchObj.isReply == 'true'
+        searchObj.replyTo= { $exists: isReply }
+        delete searchObj.isReply      
+    }
+    let results = await getPosts(searchObj)
     res.status(200).send(results)
 })
 
@@ -133,7 +138,6 @@ router.post("/:id/retweet", async (req: Request, res: Response, next: NextFuncti
 })
 
 //Comment
-
 router.post("/comment/:postId", async (req: Request, res: Response, next: NextFunction) => {
     let postId = req.params.postId
     let user = req.app.get('user')

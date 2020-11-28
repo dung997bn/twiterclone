@@ -130,6 +130,29 @@ $(document).ready(() => {
         }
     }))
 
+    $(document).on('click', '.followButton', ((e) => {
+        let button = $(e.target)
+        let userId = button.data('user')
+
+        $.ajax({
+            url: `/api/users/${userId}/follow`,
+            type: 'PUT',
+            success: (data, status, xhr) => {
+                if (xhr.status === 404) {
+                    alert('User not found')
+                    return
+                }
+                if (data.following && data.following.includes(userId))
+                    button.addClass('following')
+                else
+                    button.removeClass('following')
+
+            },
+            error: (error) => {
+                console.log(error);
+            }
+        })
+    }))
 })
 
 function getPostIdFromElement(element) {
