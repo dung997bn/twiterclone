@@ -8,10 +8,32 @@ const router = express.Router()
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
     let searchObj = req.query as any
     if (searchObj.isReply !== undefined) {
-        var isReply = searchObj.isReply == 'true'
-        searchObj.replyTo= { $exists: isReply }
-        delete searchObj.isReply      
+        let isReply = searchObj.isReply == 'true'
+        searchObj.replyTo = { $exists: isReply }
+        delete searchObj.isReply
     }
+
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+    if (searchObj.followingOnly) {
+        let followingOnly = searchObj.followingOnly == 'true'
+
+        if (followingOnly) {
+            let objectIds = Array<any>()
+
+            user.following.forEach((user: any) => {
+                objectIds.push(user)
+            });
+            objectIds.push(user._id)
+
+            searchObj.postedBy = { $in: objectIds }
+        } else {
+            delete searchObj.followingOnly
+        }
+    }
+    delete searchObj.followingOnly
     let results = await getPosts(searchObj)
     res.status(200).send(results)
 })

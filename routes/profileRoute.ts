@@ -21,7 +21,8 @@ router.get("/", (req, res, next) => {
 
 router.get("/:username", async (req: Request, res: Response, next: NextFunction) => {
     const root = 'http://localhost:3003/'
-    const payload = await getPayload(req.params.username, req.app.get('user'), root)
+    const payload: any = await getPayload(req.params.username, req.app.get('user'), root)
+    payload.selectedTab = 'post'
     res.status(200).render("profilePage", payload)
 })
 
@@ -30,6 +31,20 @@ router.get("/:username/replies", async (req: Request, res: Response, next: NextF
     const payload: any = await getPayload(req.params.username, req.app.get('user'), root)
     payload.selectedTab = 'replies'
     res.status(200).render("profilePage", payload)
+})
+
+router.get("/:username/following", async (req: Request, res: Response, next: NextFunction) => {
+    const root = 'http://localhost:3003/'
+    const payload: any = await getPayload(req.params.username, req.app.get('user'), root)
+    payload.selectedTab = 'following'
+    res.status(200).render("followersAndFollowing", payload)
+})
+
+router.get("/:username/followers", async (req: Request, res: Response, next: NextFunction) => {
+    const root = 'http://localhost:3003/'
+    const payload: any = await getPayload(req.params.username, req.app.get('user'), root)
+    payload.selectedTab = 'followers'
+    res.status(200).render("followersAndFollowing", payload)
 })
 
 async function getPayload(username: string, userLoggedInClient: any, root: string) {

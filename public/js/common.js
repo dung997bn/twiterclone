@@ -142,10 +142,31 @@ $(document).ready(() => {
                     alert('User not found')
                     return
                 }
-                if (data.following && data.following.includes(userId))
+
+                let difference = 1
+                if (data.following && data.following.includes(userId)) {
                     button.addClass('following')
-                else
+                    button.text('Following')
+                }
+                else {
                     button.removeClass('following')
+                    button.text('Follow')
+                    difference = -1
+                }
+
+
+                let followersLabel = $('#followersValue')
+                if (followersLabel.length != 0) {
+                    let followersText = followersLabel.text()
+                    if (!followersText) followersText = "0"
+                    followersText = parseInt(followersText)
+                    followersLabel.text(followersText + difference)
+                }
+                // let followingLabel=$('#followersValue')
+                // if(followingLabel.length != 0){
+                //     let follow
+                // }
+
 
             },
             error: (error) => {
@@ -317,4 +338,47 @@ function outputPostWithReplies(results, container) {
         var html = creatPostHtml(result.replies)
         container.append(html)
     })
+}
+
+
+function outputUsers(results, container) {
+    container.html("");
+
+    results.forEach(result => {
+        var html = createUserHtml(result, true);
+        container.append(html);
+    });
+
+    if (results.length == 0) {
+        container.append("<span class='noResults'>No results found</span>")
+    }
+}
+
+
+function createUserHtml(userData, showFollowButton) {
+    let root = location.origin
+    var name = userData.firstName + " " + userData.lastName;
+    var isFollowing = userLoggedInClient.following && userLoggedInClient.following.includes(userData._id);
+    var text = isFollowing ? "Following" : "Follow"
+    var buttonClass = isFollowing ? "followButton following" : "followButton"
+
+    var followButton = "";
+    if (showFollowButton && userLoggedInClient._id != userData._id) {
+        followButton = `<div class='followButtonContainer'>
+                            <button class='${buttonClass}' data-user='${userData._id}'>${text}</button>
+                        </div>`;
+    }
+
+    return `<div class='user'>
+                <div class='userImageContainer'>
+                    <img src='${root}/${userData.profilePic}'>
+                </div>
+                <div class='userDetailsContainer'>
+                    <div class='header'>
+                        <a href='/profile/${userData.username}'>${name}</a>
+                        <span class='username'>@${userData.username}</span>
+                    </div>
+                </div>
+                ${followButton}
+            </div>`;
 }

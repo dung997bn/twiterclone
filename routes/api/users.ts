@@ -5,6 +5,28 @@ import User from '../../schemas/User';
 
 const router = express.Router()
 
+
+router.get("/:userId/following", async (req: Request, res: Response, next: NextFunction) => {
+    let results: any = await User.findById(req.params.userId)
+        .populate("following")
+        .catch(error => {
+            console.log(error);
+            res.sendStatus(400);
+        })
+    return res.status(200).send(results);
+});
+
+router.get("/:userId/followers", async (req: Request, res: Response, next: NextFunction) => {
+    let results: any = await User.findById(req.params.userId)
+        .populate("followers")
+        .catch(error => {
+            console.log(error);
+            res.sendStatus(400);
+        })
+    return res.status(200).send(results);
+});
+
+
 router.put("/:userId/follow", async (req: Request, res: Response, next: NextFunction) => {
     let user = req.app.get('user')
     let userId = req.params.userId
