@@ -4,6 +4,38 @@ import Chat from '../../schemas/Chat';
 
 const router = express.Router()
 
+router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+
+    let results: any = await Chat.find({ users: { $elemMatch: { $eq: user._id } } })
+        .populate("users")
+        .sort({ updatedAt: -1 })
+        .catch((error) => {
+            return res.status(400).send({ error })
+        })
+
+    res.status(200).send(results)
+})
+
+router.get("/:chatId", async (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+
+    let results: any = await Chat.findOne({ _id: req.params.chatId, users: { $elemMatch: { $eq: user._id } } })
+        .populate("users")
+        .sort({ updatedAt: -1 })
+        .catch((error) => {
+            return res.status(400).send({ error })
+        })
+
+    res.status(200).send(results)
+})
+
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     let user = req.app.get('user')
@@ -19,7 +51,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         _id: user._id,
         username: user.username
     })
-    let chatName = users.map(u=>u.username).join(", ")
+    let chatName = users.map(u => u.username).join(", ")
     let userIds = users.map((u) => u._id)
 
     let chatData = {
@@ -34,6 +66,18 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         })
 
     res.status(200).send(result)
+})
+
+router.put("/:chatId", async (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+    let results: any = await Chat.findByIdAndUpdate(req.params.chatId, req.body)
+        .catch((error) => {
+            return res.status(400).send({ error })
+        })
+    res.status(200).send(results)
 })
 
 module.exports = router;

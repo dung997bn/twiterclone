@@ -63,7 +63,7 @@ $(document).ready(() => {
         var postId = getPostIdFromElement(button);
         $("#pinPostButton").data("id", postId);
     })
-    
+
     $("#unpinModal").on("show.bs.modal", (event) => {
         var button = $(event.relatedTarget);
         var postId = getPostIdFromElement(button);
@@ -72,32 +72,32 @@ $(document).ready(() => {
 
     $("#pinPostButton").click((event) => {
         var postId = $(event.target).data("id");
-    
+
         $.ajax({
             url: `/api/posts/${postId}`,
             type: "PUT",
             data: { pinned: true },
             success: (data, status, xhr) => {
-                if(xhr.status != 204) {
+                if (xhr.status != 204) {
                     alert("could not delete post");
                     return;
-                }  
+                }
                 location.reload();
             }
         })
     })
-    
+
     $("#unpinPostButton").click((event) => {
-        var postId = $(event.target).data("id"); 
+        var postId = $(event.target).data("id");
         $.ajax({
             url: `/api/posts/${postId}`,
             type: "PUT",
             data: { pinned: false },
             success: (data, status, xhr) => {
-                if(xhr.status != 204) {
+                if (xhr.status != 204) {
                     alert("could not delete post");
                     return;
-                }    
+                }
                 location.reload();
             }
         })
@@ -556,4 +556,48 @@ function createUserHtml(userData, showFollowButton) {
                 </div>
                 ${followButton}
             </div>`;
+}
+
+
+//Chat
+function getUserChatImageElement(user) {
+    if (!user || !user.profilePic) {
+        return alert("User passed into function is invalid");
+    }
+    return `<img src='${user.profilePic}' alt='User's profile pic'>`;
+}
+
+function getOtherChatUsers(users) {
+    if (users.length == 1) return users;
+    let returnData = users.filter(u => u._id !== userLoggedInClient._id);
+    return returnData
+}
+
+function getChatImageElements(chatData) {
+    var otherChatUsers = getOtherChatUsers(chatData.users);
+
+    var groupChatClass = "";
+    var chatImage = getUserChatImageElement(otherChatUsers[0]);
+    if (otherChatUsers.length > 1) {
+        groupChatClass = "groupChatImage";
+        chatImage += getUserChatImageElement(otherChatUsers[1]);
+    }
+    return `<div class='resultsImageContainer ${groupChatClass}'>${chatImage}</div>`;
+}
+
+function createChatHtml(chatData) {
+    var chatName = chatData.chatName
+    var image = getChatImageElements(chatData);
+    var latestMessage = "fdfds"
+    // var latestMessage = getLatestMessage(chatData.latestMessage);
+
+    var activeClass = !chatData.latestMessage || chatData.latestMessage.readBy.includes(userLoggedIn._id) ? "" : "active";
+
+    return `<a href='/messages/${chatData._id}' class='resultListItem ${activeClass}'>
+                ${image}
+                <div class='resultsDetailsContainer ellipsis'>
+                    <span class='heading ellipsis'>${chatName}</span>
+                    <span class='subText ellipsis'>${latestMessage}</span>
+                </div>
+            </a>`;
 }
