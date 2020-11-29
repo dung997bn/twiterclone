@@ -206,6 +206,17 @@ router.put("/:id", async (req: Request, res: Response, next: NextFunction) => {
         })
 })
 
+//Seach
+router.get("/page/search/", async (req: Request, res: Response, next: NextFunction) => {
+    let searchObj = req.query
+    if (searchObj.search) {
+        searchObj.content = { $regex: searchObj.search, $options: "i" }     
+    }
+    delete searchObj.search
+    let results = await getPosts(searchObj)
+    res.status(200).send(results)
+})
+
 async function getPosts(filter: any): Promise<typeof Post[]> {
     let results: any = await Post.find(filter)
         .populate("postedBy")

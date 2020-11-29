@@ -10,6 +10,29 @@ let upload = multer({
     dest: "uploads/"
 })
 
+router.get("/page/search", async (req: Request, res: Response, next: NextFunction) => {
+    let searchObj = req.query
+    if (searchObj.search) {
+        searchObj = {
+            $or: [
+                { firstName: { $regex: searchObj.search, $options: "i" } },
+                { lastName: { $regex: searchObj.search, $options: "i" } },
+                { username: { $regex: searchObj.search, $options: "i" } },
+                { email: { $regex: searchObj.search, $options: "i" } },
+            ]
+        }
+    }
+    delete searchObj.search
+
+    let results: any = await User.find(searchObj)
+        .populate("following")
+        .catch(error => {
+            console.log(error);
+            res.sendStatus(400);
+        })
+    return res.status(200).send(results);
+});
+
 router.get("/:userId/following", async (req: Request, res: Response, next: NextFunction) => {
     let results: any = await User.findById(req.params.userId)
         .populate("following")

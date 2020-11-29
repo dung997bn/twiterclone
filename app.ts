@@ -43,6 +43,7 @@ const uploadsRoute = require('./routes/uploadsRoute')
 //Route view
 const postRoute = require('./routes/postRoute')
 const profileRoute = require('./routes/profileRoute')
+const searchRoute = require('./routes/searchRoute')
 
 app.use("/login", loginRoute)
 app.use("/register", registerRoute)
@@ -59,6 +60,7 @@ app.use(requireLogin)
 
 app.use('/posts', postRoute)
 app.use('/profile', profileRoute)
+app.use('/search', searchRoute)
 app.get("/", (req: Request, res: Response, next: NextFunction) => {
     let user = req.app.get('user')
     if (!user)
