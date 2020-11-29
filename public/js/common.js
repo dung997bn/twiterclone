@@ -324,6 +324,10 @@ $(document).ready(() => {
             }
         })
     }))
+
+
+
+
 })
 
 function getPostIdFromElement(element) {
@@ -540,7 +544,7 @@ function createUserHtml(userData, showFollowButton) {
                         </div>`;
     }
 
-    return `<div class='user'>
+    return `<div class='user' data-id="${userData._id}" data-username="${userData.username}">
                 <div class='userImageContainer'>
                     <img src='${root}${userData.profilePic}'>
                 </div>

@@ -22,7 +22,6 @@ function seach(searchTerm, searchTab) {
     let urlPath = searchTab == 'users' ? 'users' : 'posts'
     let url = `/api/${urlPath}/page/search`
     $.get(url, { search: searchTerm }, (results) => {
-        console.log(results);
         if (searchTab == 'users') {
             outputUsers(results, $(".resultsContainer"));
         } else {

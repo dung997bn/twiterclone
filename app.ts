@@ -23,8 +23,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.set("view engine", "pug")
 app.set("views", "views")
 
-
-
 app.use(express.static(path.join(__dirname, "public")))
 app.use(session({
     secret: config.getSecret(),
@@ -37,6 +35,7 @@ const registerRoute = require('./routes/registerRoute')
 const logoutRoute = require('./routes/logout');
 const postsApiRoute = require('./routes/api/posts');
 const userApiRoute = require('./routes/api/users');
+const chatsRoute = require('./routes/api/chats');
 
 //Access root
 const uploadsRoute = require('./routes/uploadsRoute')
@@ -44,12 +43,14 @@ const uploadsRoute = require('./routes/uploadsRoute')
 const postRoute = require('./routes/postRoute')
 const profileRoute = require('./routes/profileRoute')
 const searchRoute = require('./routes/searchRoute')
+const messagesRoute = require('./routes/messagesRoute')
 
 app.use("/login", loginRoute)
 app.use("/register", registerRoute)
 app.use("/logout", logoutRoute)
 app.use("/api/posts", postsApiRoute)
 app.use("/api/users", userApiRoute)
+app.use("/api/chats", chatsRoute)
 
 //allow client access root of server
 app.use("/uploads", uploadsRoute)
@@ -58,6 +59,7 @@ app.use(requireLogin)
 
 //Render view
 
+app.use('/messages', messagesRoute)
 app.use('/posts', postRoute)
 app.use('/profile', profileRoute)
 app.use('/search', searchRoute)
