@@ -10,14 +10,16 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
         return res.redirect("/login");
     }
 
-    let results: any = await Chat.find({ users: { $elemMatch: { $eq: user._id } } })
+    await Chat.find({ users: { $elemMatch: { $eq: user._id } } })
         .populate("users")
-        .sort({ updatedAt: -1 })
+        .populate("latestMessage")
+        .sort({ updatedAt: -1 }).then(async (data) => {
+            data = await Chat.populate(data, { path: 'latestMessage.sender' })
+            res.status(200).send(data)
+        })
         .catch((error) => {
             return res.status(400).send({ error })
         })
-
-    res.status(200).send(results)
 })
 
 router.get("/:chatId", async (req: Request, res: Response, next: NextFunction) => {

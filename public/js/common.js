@@ -585,13 +585,19 @@ function getChatImageElements(chatData) {
     return `<div class='resultsImageContainer ${groupChatClass}'>${chatImage}</div>`;
 }
 
+function getLatestMessage(latestMessage) {
+    if (latestMessage != null) {
+        let sender = latestMessage.sender
+        return `${sender.firstName} ${sender.lastName}: ${latestMessage.content}`
+    }
+}
+
 function createChatHtml(chatData) {
     var chatName = chatData.chatName
     var image = getChatImageElements(chatData);
-    var latestMessage = "fdfds"
-    // var latestMessage = getLatestMessage(chatData.latestMessage);
+    var latestMessage = getLatestMessage(chatData.latestMessage);
 
-    var activeClass = !chatData.latestMessage || chatData.latestMessage.readBy.includes(userLoggedIn._id) ? "" : "active";
+    var activeClass = !chatData.latestMessage || chatData.latestMessage.readBy.includes(userLoggedInClient._id) ? "" : "active";
 
     return `<a href='/messages/${chatData._id}' class='resultListItem ${activeClass}'>
                 ${image}

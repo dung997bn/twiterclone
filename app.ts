@@ -35,7 +35,8 @@ const registerRoute = require('./routes/registerRoute')
 const logoutRoute = require('./routes/logout');
 const postsApiRoute = require('./routes/api/posts');
 const userApiRoute = require('./routes/api/users');
-const chatsRoute = require('./routes/api/chats');
+const chatsApiRoute = require('./routes/api/chats');
+const messagesApiRoute = require('./routes/api/messages');
 
 //Access root
 const uploadsRoute = require('./routes/uploadsRoute')
@@ -50,7 +51,8 @@ app.use("/register", registerRoute)
 app.use("/logout", logoutRoute)
 app.use("/api/posts", postsApiRoute)
 app.use("/api/users", userApiRoute)
-app.use("/api/chats", chatsRoute)
+app.use("/api/chats", chatsApiRoute)
+app.use("/api/messages", messagesApiRoute)
 
 //allow client access root of server
 app.use("/uploads", uploadsRoute)
