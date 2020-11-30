@@ -1,6 +1,7 @@
 import express from 'express';
 import { NextFunction, Request, Response } from 'express';
 import Chat from '../../schemas/Chat';
+import Message from '../../schemas/Message';
 
 const router = express.Router()
 
@@ -36,6 +37,24 @@ router.get("/:chatId", async (req: Request, res: Response, next: NextFunction) =
         })
 
     res.status(200).send(results)
+})
+
+router.get("/:chatId/messages", async (req: Request, res: Response, next: NextFunction) => {
+    let user = req.app.get('user')
+    if (!user) {
+        return res.redirect("/login");
+    }
+
+    await Message.find({ chat: req.params.chatId })
+        .populate("sender")
+        .sort({ createdAt: 1 })
+        .then((data) => {
+            return res.status(200).send(data)
+        })
+        .catch((error) => {
+            return res.status(400).send({ error })
+        })
+
 })
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {

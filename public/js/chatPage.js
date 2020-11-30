@@ -2,6 +2,23 @@ $(document).ready(() => {
     $.get(`/api/chats/${chatId}`, data => {
         $('#chatName').text(data.chatName)
     })
+    $.get(`/api/chats/${chatId}/messages`, data => {
+        console.log(data);
+        let messages = []
+        let lastSenderId = "";
+        data.forEach((message, index) => {
+            let html = createMessageHtml(message, data[index + 1], lastSenderId)
+            messages.push(html)
+            lastSenderId = message.sender._id
+        });
+
+        let messagesHtml = messages.join(" ")
+        addMessagesHtmlToPage(messagesHtml)
+        scrollToBottom(false);
+
+        $(".loadingSpinnerContainer").remove();
+        $(".chatContainer").css("visibility", "visible");
+    })
 })
 
 $("#chatNameButton").click(() => {
@@ -57,18 +74,69 @@ function addChatMessageHtml(message) {
     }
     let messageLi = createMessageHtml(message)
     $('.chatMessages').append(messageLi)
+    scrollToBottom(true);
 }
 
-function createMessageHtml(message) {
+function createMessageHtml(message, nextMessage, lastSenderId) {
+
+    let sender = message.sender
+    let senderName = sender.firstName + " " + sender.lastName
+
+    let currentSenderId = sender._id
+    let nextSenderId = nextMessage ? nextMessage.sender._id : ""
+
+    let isFirst = lastSenderId !== currentSenderId
+    let isLast = nextSenderId !== currentSenderId
+
     let isMine = message.sender._id === userLoggedInClient._id
     let liClassName = isMine ? "mine" : "theirs"
+
+    let nameElement = ""
+
+    if (isFirst) {
+        liClassName += " first"
+        if (!isMine) {
+            nameElement = `<span class='senderName'>${senderName}</span>`;
+        }
+    }
+    var profileImage = "";
+    if (isLast) {
+        liClassName += " last"
+        profileImage = `<img src='${sender.profilePic}'>`;
+    }
+    let imageContainer = ""
+    if (!isMine) {
+        imageContainer = `<div class='imageContainer'>
+                                ${profileImage}
+                            </div>`;
+    }
     return `
         <li class="message ${liClassName}">
+        ${imageContainer}
             <div class="messageContainer">
+            ${nameElement}
                 <span class="messageBody">
                     ${message.content}
                 </span>
             </div>
         </li>
     `
+}
+
+
+function addMessagesHtmlToPage(html) {
+    $('.chatMessages').append(html)
+}
+
+
+function scrollToBottom(animated) {
+    var container = $(".chatMessages");
+    var scrollHeight = container[0].scrollHeight;
+
+    if(animated) {
+        container.animate({ scrollTop: scrollHeight }, "slow");
+    }
+    else {
+        container.scrollTop(scrollHeight);
+    }
 }
