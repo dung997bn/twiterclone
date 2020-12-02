@@ -17,6 +17,9 @@ const dataBase = new Database()
 const server = app.listen(port, () => {
     console.log("Server listening on port " + port);
 })
+const io = require('socket.io')(server, {
+    pingTimeout: 60000
+})
 
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -75,4 +78,25 @@ app.get("/", (req: Request, res: Response, next: NextFunction) => {
         userLoggedInClient: JSON.stringify(user)
     }
     res.status(200).render("home", payload)
+})
+
+
+io.on("connection", (socket: any) => {
+
+    socket.on("setup", (userData: any) => {
+        socket.join(userData._id)
+        socket.emit("connected")
+    })
+
+    socket.on("join room", (room: string) => {
+        socket.join(room)
+    })
+
+    socket.on("typing", (room: string) => {
+        socket.in(room).emit("typing")
+    })
+
+    socket.on("stop typing", (room: string) => {
+        socket.in(room).emit("stop typing")
+    })
 })

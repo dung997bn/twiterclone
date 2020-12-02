@@ -1,9 +1,15 @@
+let typing = false
+let lastTypingTime
+
 $(document).ready(() => {
+    socket.emit('join room', chatId)
+    socket.on('typing', () => $('.typingDots').show())
+    socket.on('stop typing', () => $('.typingDots').hide())
+
     $.get(`/api/chats/${chatId}`, data => {
         $('#chatName').text(data.chatName)
     })
     $.get(`/api/chats/${chatId}/messages`, data => {
-        console.log(data);
         let messages = []
         let lastSenderId = "";
         data.forEach((message, index) => {
@@ -39,11 +45,32 @@ $("#chatNameButton").click(() => {
 })
 
 $(".inputTextbox").keydown((e) => {
+    updateTyping()
     if (e.which === 13 && !e.shiftKey) {
         messageSubmitted()
         return false
     }
 })
+
+function updateTyping() {
+    if (!connected) return
+    if (!typing) {
+        typing = true
+        socket.emit("typing", chatId)
+    }
+
+    lastTypingTime = new Date().getTime()
+    let timerLength = 3000
+
+    setTimeout(() => {
+        let timerNow = new Date().getTime()
+        let timeDiff = timerNow - lastTypingTime
+        if (timeDiff >= timerLength && typing) {
+            socket.emit("stop typing", chatId)
+            typing = false
+        }
+    }, timerLength)
+}
 
 $(".sendMessageButton").click(() => {
     if ($('.inputTextbox').val().trim()) {
@@ -123,17 +150,15 @@ function createMessageHtml(message, nextMessage, lastSenderId) {
     `
 }
 
-
 function addMessagesHtmlToPage(html) {
     $('.chatMessages').append(html)
 }
-
 
 function scrollToBottom(animated) {
     var container = $(".chatMessages");
     var scrollHeight = container[0].scrollHeight;
 
-    if(animated) {
+    if (animated) {
         container.animate({ scrollTop: scrollHeight }, "slow");
     }
     else {
